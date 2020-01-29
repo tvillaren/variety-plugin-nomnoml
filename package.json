@@ -1,0 +1,22 @@
+{
+  "name": "variety-plugin-nomnoml",
+  "version": "0.0.1",
+  "description": "Variety plugin formatting analysis results to Nomnoml",
+  "main": "index.js",
+  "scripts": {
+    "lint": "jshint index.js",
+    "pretest": "npm run lint",
+    "test": "jasmine-node spec --verbose --captureExceptions"
+  },
+  "devDependencies": {
+    "jasmine-node": "*",
+    "jshint": "*"
+  },
+  "keywords": [
+    "variety-plugin",
+    "variety",
+    "UML"
+  ],
+  "author": "Thomas Villaren",
+  "license": "MIT"
+}
