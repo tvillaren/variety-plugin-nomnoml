@@ -53,8 +53,6 @@ mongo test --eval "var collection = 'users'; var plugins='index.js';" variety.js
 
 ## Plugin options
 
-Note than the current version of variety plugin doesn't allow use of more than 2 options.
-
 ### displayStats
 
 By default, the output will not display the percentages or occurence counts for the field & related objects to avoid cluttering. You can add them by setting the `displayStats` parameter to true.
@@ -75,17 +73,14 @@ With the following Nomnoml representation:
 
 ![Graph with stats](./graph-with-stats.png)
 
-
 ### collectionName
 
 Current version of the variety results doesn't contain the name of the original collection.  
 In order to generate a complete graph of the collection, we need to specify the "main collection" name as a parameter:
 
 ```
-mongo test --eval "var collection = 'users'; var plugins='index.js|displayStats=true|collectionName=users';" variety.js
+mongo test --eval "var collection = 'users'; var plugins='index.js|displayStats=true&collectionName=users';" variety.js
 ```
-
-If you can use only one option, this second one can always be added "manually" after the generation of the output, by replacing the `"No name"` string in the result with the name of your root collection.
 
 ## Hacking
 
