@@ -274,7 +274,7 @@ describe('Nomnoml plugin for Variety', function() {
 
   it('should handle linked array with objects', function() {
 
-    plugin.init({'collectionName': 'Main','displayStats':false});
+    plugin.init({'collectionName': 'Main','displayStats':true});
 
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResultsWithObjectInArray);
