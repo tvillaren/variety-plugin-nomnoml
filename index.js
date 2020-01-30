@@ -7,32 +7,38 @@ var getNomnoml = function(varietyResults) {
     handleRootKey.bind(this)(varietyResults[i], rootObject);
   }
 
+  factorArray.bind(this)(rootObject);
+
   return toString.bind(this)(rootObject);
 };
   
 var handleRootKey = function(key, currentObject) {
 
-  if(key.value.types === 'Object')
-    return handleLinkedObject.bind(this)(key, currentObject, false);
-   
-  if(key.value.types === 'Array')
-    return handleLinkedObject.bind(this)(key, currentObject, true);
-
   // Handled in the linked object  
   if(key._id.key.indexOf('.') > -1) 
     return handleDeepKey.bind(this)(key, currentObject);
-  
+
   return handleKey.bind(this)(key, currentObject);
 };
 
 var handleKey = function(key, currentObject) {
+  if(key.value.types.hasOwnProperty('Object'))
+    return handleLinkedObject.bind(this)(key, currentObject, false);
+   
+  if(key.value.types.hasOwnProperty('Array'))
+    return handleLinkedObject.bind(this)(key, currentObject, true);
+  
   if(!currentObject.fields)
     currentObject.fields = [];
 
-  var current = key._id.key + ': ' + key.value.types;
-  if(this.displayStats)
-    current += ' ('+ (Math.round(key.percentContaining * 100) / 100) + '%)';
-  currentObject.fields.push(current);
+  // var current = key._id.key + ': ' + Object.keys(key.value.types).join(',');
+  // if(this.displayStats)
+  //   current += ' ('+ (Math.round(key.percentContaining * 100) / 100) + '%)';
+  currentObject.fields.push({
+    name: key._id.key,
+    types: Object.keys(key.value.types),
+    stats: key.percentContaining
+  });
   return;
 };
 
@@ -54,6 +60,8 @@ var handleDeepKey = function(path, fromObject) {
     }
   }
 
+  path._id.key = splittedPath[splittedPath.length-1];
+
   // And adding the field to the last bit
   handleKey(path, currentObject);
 };
@@ -74,11 +82,57 @@ var handleLinkedObject = function(path, fromObject, isArray) {
       name: name
     };
   }
-  if(typeof path === 'object' && this.displayStats) {
-    fromObject.relatedObjects[name].related.stats = (Math.round(path.percentContaining * 100) / 100);
+  if(typeof path === 'object') {
+    fromObject.relatedObjects[name].related.stats = path.percentContaining;
   }
   
   return fromObject.relatedObjects[name].related;
+};
+
+var getCandidateFieldInCollection = function(fieldList, fieldName) {
+  return fieldList.filter(function(elt) { return elt.name === fieldName; });
+};
+
+var factorArray = function(rootObject) {
+  if(rootObject.relatedObjects) {
+    var keys = Object.keys(rootObject.relatedObjects);
+    for(var j=0; j<keys.length; j++) {
+      
+      // First, going deeper recursively
+      factorArray.bind(this)(rootObject.relatedObjects[keys[j]].related);
+
+      // Check if we have a relation to an array with no fields
+      // Which means we store in DB just a list of values and not a list of objects
+      if(rootObject.relatedObjects[keys[j]].isMany && !rootObject.relatedObjects[keys[j]].related.fields) {
+        
+        // In that case, we remove the link and add it as a field on the rootObject
+        var fieldName = rootObject.relatedObjects[keys[j]].related.name;
+        if(rootObject.fields) {
+          var candidateField = getCandidateFieldInCollection(rootObject.fields, fieldName);
+          if(candidateField.length > 0) {
+            if(candidateField[0].types.indexOf('Array') === -1) {
+              candidateField[0].types.push('Array');
+            }
+          } else {
+            rootObject.fields.push({
+              name: fieldName,
+              types: ['Array'],
+              stats: rootObject.relatedObjects[keys[j]].related.stats
+            });
+          }
+        } else {
+          rootObject.fields = [{
+            name: fieldName,
+            types: ['Array'],
+            stats: rootObject.relatedObjects[keys[j]].related.stats
+          }];
+        }
+
+        // Deleting the migrated key
+        delete rootObject.relatedObjects[keys[j]];
+      }
+    }
+  }
 };
 
 var toString = function(rootObject) {
@@ -86,20 +140,29 @@ var toString = function(rootObject) {
 
   // Adding block
   toReturn.push(
-    '[' + rootObject.name + (rootObject.stats !== undefined ? ('|' + rootObject.stats + '%') : '') + (rootObject.fields ? '|' + rootObject.fields.join(';') : '') + ']'
+    '[' + rootObject.name + (this.displayStats && rootObject.stats ? ('|' + (Math.round(rootObject.stats * 100) / 100) + '%') : '') + (rootObject.fields ? '|' + rootObject.fields.map(fieldToString.bind(this)).join(';') : '') + ']'
   );
 
   // Adding links if needed
   if(rootObject.relatedObjects) {
-    for(var j=0; j<rootObject.relatedObjects.length; j++) {
-      toReturn.push(toString(rootObject.relatedObjects[j].related));
+    var keys = Object.keys(rootObject.relatedObjects);
+    for(var j=0; j<keys.length; j++) {
+      toReturn.push(toString.bind(this)(rootObject.relatedObjects[keys[j]].related));
       toReturn.push(
-        '[' + rootObject.name + ']' + '-' + (rootObject.relatedObjects[j].isMany ? '*' : '1') + '[' + rootObject.relatedObjects[j].related.name + ']'
+        '[' + rootObject.name + ']' + '1-' + (rootObject.relatedObjects[keys[j]].isMany ? '*' : '1') + '[' + rootObject.relatedObjects[keys[j]].related.name + ']'
       );
     }
   }
 
   return toReturn.join('\n');
+};
+
+var fieldToString = function(field) {
+  var current = field.name + ': ' + field.types.join(',');
+  if(this.displayStats)
+    current += ' ('+ (Math.round(field.stats * 100) / 100) + '%)';
+ 
+  return current;
 };
 
 

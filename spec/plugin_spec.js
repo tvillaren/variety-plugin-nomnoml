@@ -7,9 +7,9 @@ var mockedResults = [
       "key": "_id"
     },
     "value": {
-      "types": [
-        "ObjectId"
-      ]
+      "types": {
+        "ObjectId": 5
+      }
     },
     "totalOccurrences": 5,
     "percentContaining": 100
@@ -19,21 +19,203 @@ var mockedResults = [
       "key": "pets"
     },
     "value": {
-      "types": [
-        "Array",
-        "String"
-      ]
+      "types": {
+        "Number": 1,
+        "String": 1
+      }
     },
     "totalOccurrences": 2,
     "percentContaining": 40
   }
 ];
 
-describe('Nomnoml plugin for Variety', function() {
+var mockedResultsWithObject = [
+	{
+		"_id" : {
+			"key" : "_id"
+		},
+		"value" : {
+			"types" : {
+				"ObjectId" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "createdAt"
+		},
+		"value" : {
+			"types" : {
+				"Date" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "firstObject"
+		},
+		"value" : {
+			"types" : {
+				"Object" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "firstObject.listIds"
+		},
+		"value" : {
+			"types" : {
+				"Array" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "firstObject.name"
+		},
+		"value" : {
+			"types" : {
+				"String" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "firstObject.number"
+		},
+		"value" : {
+			"types" : {
+				"Number" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "comment"
+		},
+		"value" : {
+			"types" : {
+				"String" : 1
+			}
+		},
+		"totalOccurrences" : 1,
+		"percentContaining" : 50
+	},
+	{
+		"_id" : {
+			"key" : "isLocked"
+		},
+		"value" : {
+			"types" : {
+				"Boolean" : 1
+			}
+		},
+		"totalOccurrences" : 1,
+		"percentContaining" : 50
+	}
+];
 
-//	beforeEach(function(){
-//		plugin.init({'delimiter' : '|'});
-//	});
+var mockedResultsWithObjectInArray = [
+	{
+		"_id" : {
+			"key" : "_id"
+		},
+		"value" : {
+			"types" : {
+				"ObjectId" : 14
+			}
+		},
+		"totalOccurrences" : 14,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "title"
+		},
+		"value" : {
+			"types" : {
+				"String" : 14
+			}
+		},
+		"totalOccurrences" : 14,
+		"percentContaining" : 100
+	},
+	{
+		"_id" : {
+			"key" : "data"
+		},
+		"value" : {
+			"types" : {
+				"Array" : 13
+			}
+		},
+		"totalOccurrences" : 13,
+		"percentContaining" : 92.85714285714286
+	},
+	{
+		"_id" : {
+			"key" : "updatedAt"
+		},
+		"value" : {
+			"types" : {
+				"Date" : 6
+			}
+		},
+		"totalOccurrences" : 6,
+		"percentContaining" : 42.857142857142854
+	},
+	{
+		"_id" : {
+			"key" : "data.XX.category"
+		},
+		"value" : {
+			"types" : {
+				"String" : 2
+			}
+		},
+		"totalOccurrences" : 2,
+		"percentContaining" : 14.285714285714286
+	},
+	{
+		"_id" : {
+			"key" : "data.XX.code"
+		},
+		"value" : {
+			"types" : {
+				"String" : 1
+			}
+		},
+		"totalOccurrences" : 1,
+		"percentContaining" : 7.142857142857143
+	},
+	{
+		"_id" : {
+			"key" : "data.XX.zonename"
+		},
+		"value" : {
+			"types" : {
+				"String" : 1
+			}
+		},
+		"totalOccurrences" : 1,
+		"percentContaining" : 7.142857142857143
+	}
+]
+
+describe('Nomnoml plugin for Variety', function() {
 
   it('should format results to Nomnoml', function() {
     // let our plugin transform the variety results into own representation
@@ -42,7 +224,7 @@ describe('Nomnoml plugin for Variety', function() {
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
     expect(output).toEqual(
-      '[No name|_id: ObjectId;pets: Array,String]'
+      '[No name|_id: ObjectId;pets: Number,String]'
     );
   });
 
@@ -56,7 +238,7 @@ describe('Nomnoml plugin for Variety', function() {
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
     expect(output).toEqual(
-      '[No name|_id: ObjectId (100%);pets: Array,String (40%)]'
+      '[No name|_id: ObjectId (100%);pets: Number,String (40%)]'
     );
   });
 
@@ -70,7 +252,39 @@ describe('Nomnoml plugin for Variety', function() {
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
     expect(output).toEqual(
-      '[Main|_id: ObjectId;pets: Array,String]'
+      '[Main|_id: ObjectId;pets: Number,String]'
+    );
+  });
+
+  it('should handle linked object', function() {
+
+    plugin.init({'collectionName': 'Main'});
+
+    // let our plugin transform the variety results into own representation
+    var output = plugin.formatResults(mockedResultsWithObject);
+
+    // verify, that plugin transformed data to expected format
+    // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+    expect(output).toEqual(
+      '[Main|_id: ObjectId;createdAt: Date;comment: String;isLocked: Boolean]\n' +
+      '[firstObject|name: String;number: Number;listIds: Array]\n' +
+      '[Main]1-1[firstObject]'
+    );
+  });
+
+  it('should handle linked array with objects', function() {
+
+    plugin.init({'collectionName': 'Main','displayStats':false});
+
+    // let our plugin transform the variety results into own representation
+    var output = plugin.formatResults(mockedResultsWithObjectInArray);
+
+    // verify, that plugin transformed data to expected format
+    // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+    expect(output).toEqual(
+      '[Main|_id: ObjectId (100%);title: String (100%);updatedAt: Date (42.86%)]\n' +
+      '[data|92.86%|category: String (14.29%);code: String (7.14%);zonename: String (7.14%)]\n' +
+      '[Main]1-*[data]'
     );
   });
 });
