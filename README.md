@@ -6,18 +6,19 @@ This plugin outputs results of Variety analysis in [Nomnoml](http://www.nomnoml.
 
 Given the following results:
 
-+----------------------------------------------------------------------------+
-| key                         | types    | occurrences | percents            |
-| --------------------------- | -------- | ----------- | ------------------- |
-| _id                         | ObjectId |          14 | 100.000000000000000 |
-| title                       | String   |          14 | 100.000000000000000 |
-| data                        | Array    |          13 |  92.857142857142861 |
-| updatedAt                   | Date     |           6 |  42.857142857142854 |
-| data.XX.code                | String   |           3 |  21.428571428571427 |
-| data.XX.category            | String   |           2 |  14.285714285714286 |
-| data.XX.zonename            | String   |           1 |   7.142857142857143 |
-+----------------------------------------------------------------------------+
-
+```
+  +----------------------------------------------------------------------------+
+  | key                         | types    | occurrences | percents            |
+  | --------------------------- | -------- | ----------- | ------------------- |
+  | _id                         | ObjectId |          14 | 100.000000000000000 |
+  | title                       | String   |          14 | 100.000000000000000 |
+  | data                        | Array    |          13 |  92.857142857142861 |
+  | updatedAt                   | Date     |           6 |  42.857142857142854 |
+  | data.XX.code                | String   |           3 |  21.428571428571427 |
+  | data.XX.category            | String   |           2 |  14.285714285714286 |
+  | data.XX.zonename            | String   |           1 |   7.142857142857143 |
+  +----------------------------------------------------------------------------+
+```
 The output will be:
 
 ```
@@ -26,7 +27,7 @@ The output will be:
 [Main]1-*[data]
 ```
 
-which will give the following [representation in Nomnoml|http://www.nomnoml.com/#view/%5BMain%7C_id%3A%20ObjectId%3Btitle%3A%20String%3BupdatedAt%3A%20Date%5D%20%0A%5Bdata%7Ccategory%3A%20String%3Bcode%3A%20String%3Bzonename%3A%20String%5D%0A%5BMain%5D1-*%5Bdata%5D]:
+which will give the following [representation in Nomnoml](http://www.nomnoml.com/#view/%5BMain%7C_id%3A%20ObjectId%3Btitle%3A%20String%3BupdatedAt%3A%20Date%5D%20%0A%5Bdata%7Ccategory%3A%20String%3Bcode%3A%20String%3Bzonename%3A%20String%5D%0A%5BMain%5D1-*%5Bdata%5D):
 
 ![Graph without stats](./graph-without-stats.png)
 
