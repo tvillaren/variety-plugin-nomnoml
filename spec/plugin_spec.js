@@ -266,8 +266,8 @@ describe('Nomnoml plugin for Variety', function() {
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
     expect(output).toEqual(
-      '[Main|_id: ObjectId;createdAt: Date;comment: String;isLocked: Boolean]\n' +
-      '[firstObject|name: String;number: Number;listIds: Array]\n' +
+      '[Main|createdAt: Date;_id: ObjectId;isLocked: Boolean;comment: String]\n' +
+      '[firstObject|firstObject.listIds: Array;number: Number;name: String]\n' +
       '[Main]1-1[firstObject]'
     );
   });
@@ -282,9 +282,10 @@ describe('Nomnoml plugin for Variety', function() {
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
     expect(output).toEqual(
-      '[Main|_id: ObjectId (100%);title: String (100%);updatedAt: Date (42.86%)]\n' +
-      '[data|92.86%|category: String (14.29%);code: String (7.14%);zonename: String (7.14%)]\n' +
+      '[Main|title: String (100%);_id: ObjectId (100%);updatedAt: Date (42.86%)]\n' +
+      '[data|92.86%|category: String (14.29%);zonename: String (7.14%);code: String (7.14%)]\n' +
       '[Main]1-*[data]'
     );
   });
 });
+
