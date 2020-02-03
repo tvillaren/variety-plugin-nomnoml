@@ -60,10 +60,14 @@ var handleDeepKey = function(path, fromObject) {
     }
   }
 
+  if(!path.value.types.hasOwnProperty('Array') && !path.value.types.hasOwnProperty('Object'))
   path._id.key = splittedPath[splittedPath.length-1];
+  else if(path.value.types.hasOwnProperty('Array')) {
+    path._id.key = path._id.key.replace('.XX','');
+  }
 
   // And adding the field to the last bit
-  handleKey(path, currentObject);
+  handleKey.bind(this)(path, currentObject);
 };
 
 var handleLinkedObject = function(path, fromObject, isArray) {
@@ -103,7 +107,7 @@ var factorArray = function(rootObject) {
 
       // Check if we have a relation to an array with no fields
       // Which means we store in DB just a list of values and not a list of objects
-      if(rootObject.relatedObjects[keys[j]].isMany && !rootObject.relatedObjects[keys[j]].related.fields) {
+      if(rootObject.relatedObjects[keys[j]].isMany && rootObject.relatedObjects[keys[j]].related.fields == undefined) {
         
         // In that case, we remove the link and add it as a field on the rootObject
         var fieldName = rootObject.relatedObjects[keys[j]].related.name;
@@ -138,9 +142,15 @@ var factorArray = function(rootObject) {
 var toString = function(rootObject) {
   var toReturn = [];
 
+  var currentName = rootObject.name, i=0;
   // Adding block
   toReturn.push(
-    '[' + rootObject.name + (this.displayStats && rootObject.stats ? ('|' + (Math.round(rootObject.stats * 100) / 100) + '%') : '') + (rootObject.fields ? '|' + rootObject.fields.map(fieldToString.bind(this)).join(';') : '') + ']'
+    '[' + currentName 
+    + (this.displayStats && rootObject.stats ? ('|' + (Math.round(rootObject.stats * 100) / 100) + '%') : '') 
+    + (rootObject.fields 
+      ? '|' + rootObject.fields.sort(function(a,b) { return a.stats > b.stats ? -1 : 1; }).map(fieldToString.bind(this)).join(';') 
+      : '') 
+    + ']'
   );
 
   // Adding links if needed
@@ -149,7 +159,7 @@ var toString = function(rootObject) {
     for(var j=0; j<keys.length; j++) {
       toReturn.push(toString.bind(this)(rootObject.relatedObjects[keys[j]].related));
       toReturn.push(
-        '[' + rootObject.name + ']' + '1-' + (rootObject.relatedObjects[keys[j]].isMany ? '*' : '1') + '[' + rootObject.relatedObjects[keys[j]].related.name + ']'
+        '[' + currentName + ']' + '1-' + (rootObject.relatedObjects[keys[j]].isMany ? '*' : '1') + '[' + rootObject.relatedObjects[keys[j]].related.name + ']'
       );
     }
   }
