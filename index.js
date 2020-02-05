@@ -1,4 +1,7 @@
-var getNomnoml = function(varietyResults) {
+
+
+
+var getUml = function(varietyResults) {
 
   var rootObject = {};
   rootObject.name = this.collectionName || "No name";
@@ -9,7 +12,10 @@ var getNomnoml = function(varietyResults) {
 
   factorArray.bind(this)(rootObject);
 
-  return toString.bind(this)(rootObject);
+  if(this.nomnomuml) {
+    return toStringNomnomUML.bind(this)(rootObject);
+  }  
+  return toStringPlantUML.bind(this)(rootObject);
 };
   
 var handleRootKey = function(key, currentObject) {
@@ -61,7 +67,7 @@ var handleDeepKey = function(path, fromObject) {
   }
 
   if(!path.value.types.hasOwnProperty('Array') && !path.value.types.hasOwnProperty('Object'))
-  path._id.key = splittedPath[splittedPath.length-1];
+    path._id.key = splittedPath[splittedPath.length-1];
   else if(path.value.types.hasOwnProperty('Array')) {
     path._id.key = path._id.key.replace('.XX','');
   }
@@ -72,6 +78,10 @@ var handleDeepKey = function(path, fromObject) {
 
 var handleLinkedObject = function(path, fromObject, isArray) {
   var name = (typeof path === 'object') ? path._id.key : path;
+  // var splittedPath = name.split('.');
+  
+  // if(splittedPath.length > 0) 
+  //   name = splittedPath[splittedPath.length-1];
 
   if(!fromObject.relatedObjects)
     fromObject.relatedObjects = {};
@@ -139,25 +149,110 @@ var factorArray = function(rootObject) {
   }
 };
 
-var toString = function(rootObject) {
+var setConfig = function(pluginConfig) {
+  this.displayStats = pluginConfig && !!pluginConfig.displayStats;
+  this.collectionName = pluginConfig && pluginConfig.collectionName;
+  this.nomnomuml = pluginConfig && !!pluginConfig.nomnomuml;
+};
+
+module.exports = {
+  init: setConfig,
+  formatResults: getUml
+};
+
+
+// We store modules instead of in separate files because this plugin is called from the 
+// command line and the CLI tool used doesn't use require() but load()
+
+
+/********************
+ *  PlantUML module *
+ ********************/
+
+var toStringPlantUML = function(rootObject) {
+  
+  var toReturn = [];
+
+  toReturn.push('@startuml');
+  toReturn.push(objectToStringPlantUML.bind(this)(rootObject));  
+  toReturn.push('@enduml');
+
+  return toReturn.join('\n');
+};
+
+var objectToStringPlantUML = function(currentObject) {
+  var toReturn = [];
+  var currentName = currentObject.name;
+
+  // Adding block
+  var objectName = 'object ';
+  if(this.displayStats && currentObject.stats) {
+    objectName += ' "' + currentName + ' (' +(Math.round(currentObject.stats * 100) / 100) + '%)" as ' + currentName;    
+  } else {
+    objectName += currentName;
+  }
+  objectName += ' {';
+  toReturn.push(objectName);
+
+  // adding fields
+  toReturn = toReturn.concat(currentObject.fields ? currentObject.fields.sort(function(a,b) { return a.stats > b.stats ? -1 : 1; }).map(fieldToStringPlantUML.bind(this)) : []);  
+  toReturn.push('}');
+
+  // Adding links if needed
+  if(currentObject.relatedObjects) {
+    var keys = Object.keys(currentObject.relatedObjects);
+    for(var j=0; j<keys.length; j++) {
+      toReturn.push(objectToStringPlantUML.bind(this)(currentObject.relatedObjects[keys[j]].related));
+      toReturn.push(
+        currentName + ' "1" -- ' + (currentObject.relatedObjects[keys[j]].isMany ? '"*" ' : '"1" ' ) + currentObject.relatedObjects[keys[j]].related.name
+      );
+    }
+  }
+  return toReturn.join('\n');
+};
+
+var fieldToStringPlantUML = function(field) {
+  var current = field.name + ': ' + field.types.join(',');
+  if(this.displayStats)
+    current += ' (' + (Math.round(field.stats * 100) / 100) + '%)';
+ 
+  return '\t' + current;
+};
+
+
+
+
+
+/*********************
+ *  NomnomUML module *
+ ********************/
+
+
+
+var toStringNomnomUML = function(rootObject) {
+  if(!this.seenObjects)
+    this.seenObjects = {};
+
   var toReturn = [];
 
   var currentName = rootObject.name, i=0;
+  // while(this.seenObjects[currentName]) {
+  //   i++;
+  //   currentName = rootObject.name + i;
+  // }
+  // this.seenObjects[currentName] = true;
+
   // Adding block
   toReturn.push(
-    '[' + currentName 
-    + (this.displayStats && rootObject.stats ? ('|' + (Math.round(rootObject.stats * 100) / 100) + '%') : '') 
-    + (rootObject.fields 
-      ? '|' + rootObject.fields.sort(function(a,b) { return a.stats > b.stats ? -1 : 1; }).map(fieldToString.bind(this)).join(';') 
-      : '') 
-    + ']'
+    '[' + currentName + (this.displayStats && rootObject.stats ? ('|' + (Math.round(rootObject.stats * 100) / 100) + '%') : '') + (rootObject.fields ? '|' + rootObject.fields.sort(function(a,b) { return a.stats > b.stats ? -1 : 1; }).map(fieldToStringNomNomUML.bind(this)).join(';') 
+      : '') + ']'
   );
 
   // Adding links if needed
   if(rootObject.relatedObjects) {
     var keys = Object.keys(rootObject.relatedObjects);
     for(var j=0; j<keys.length; j++) {
-      toReturn.push(toString.bind(this)(rootObject.relatedObjects[keys[j]].related));
+      toReturn.push(toStringNomnomUML.bind(this)(rootObject.relatedObjects[keys[j]].related));
       toReturn.push(
         '[' + currentName + ']' + '1-' + (rootObject.relatedObjects[keys[j]].isMany ? '*' : '1') + '[' + rootObject.relatedObjects[keys[j]].related.name + ']'
       );
@@ -167,21 +262,10 @@ var toString = function(rootObject) {
   return toReturn.join('\n');
 };
 
-var fieldToString = function(field) {
+var fieldToStringNomNomUML = function(field) {
   var current = field.name + ': ' + field.types.join(',');
   if(this.displayStats)
     current += ' ('+ (Math.round(field.stats * 100) / 100) + '%)';
  
   return current;
-};
-
-
-var setConfig = function(pluginConfig) {
-  this.displayStats = pluginConfig && !!pluginConfig.displayStats;
-  this.collectionName = pluginConfig && pluginConfig.collectionName;
-};
-
-module.exports = {
-  init: setConfig,
-  formatResults: getNomnoml
 };

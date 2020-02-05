@@ -218,6 +218,8 @@ var mockedResultsWithObjectInArray = [
 describe('Nomnoml plugin for Variety', function() {
 
   it('should format results to Nomnoml', function() {
+	plugin.init({nomnomuml: true});
+	
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResults);
 
@@ -230,7 +232,7 @@ describe('Nomnoml plugin for Variety', function() {
 
   it('should handle displayStats passed through the plugin config', function() {
 
-    plugin.init({'displayStats': true});
+    plugin.init({'displayStats': true, nomnomuml: true});
 
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResults);
@@ -244,7 +246,7 @@ describe('Nomnoml plugin for Variety', function() {
 
   it('should handle collectionName passed through the plugin config', function() {
 
-    plugin.init({'collectionName': 'Main'});
+    plugin.init({'collectionName': 'Main', nomnomuml: true});
 
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResults);
@@ -258,7 +260,7 @@ describe('Nomnoml plugin for Variety', function() {
 
   it('should handle linked object', function() {
 
-    plugin.init({'collectionName': 'Main'});
+    plugin.init({'collectionName': 'Main', 'nomnomuml': true});
 
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResultsWithObject);
@@ -274,14 +276,14 @@ describe('Nomnoml plugin for Variety', function() {
 
   it('should handle linked array with objects', function() {
 
-    plugin.init({'collectionName': 'Main','displayStats':true});
+    plugin.init({'collectionName': 'Main','displayStats':true, nomnomuml: true});
 
     // let our plugin transform the variety results into own representation
     var output = plugin.formatResults(mockedResultsWithObjectInArray);
 
     // verify, that plugin transformed data to expected format
     // https://jasmine.github.io/1.3/introduction.html#section-Expectations
-    expect(output).toEqual(
+    expect(output).toEqual(	
       '[Main|title: String (100%);_id: ObjectId (100%);updatedAt: Date (42.86%)]\n' +
       '[data|92.86%|category: String (14.29%);zonename: String (7.14%);code: String (7.14%)]\n' +
       '[Main]1-*[data]'
@@ -289,3 +291,115 @@ describe('Nomnoml plugin for Variety', function() {
   });
 });
 
+
+
+describe('PlantUML plugin for Variety', function() {
+
+	it('should format results to PlantUML', function() {
+	  plugin.init({nomnomuml: false});
+	  
+	  // let our plugin transform the variety results into own representation
+	  var output = plugin.formatResults(mockedResults);
+  
+	  // verify, that plugin transformed data to expected format
+	  // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+	  expect(output).toEqual(
+		'@startuml\n' +
+		'object No name {\n' +
+		'\t_id: ObjectId\n' +
+		'\tpets: Number,String\n' +
+	  	'}\n' +
+	  	'@enduml'
+	  );
+	});
+  
+	it('should handle displayStats passed through the plugin config', function() {
+  
+	  plugin.init({'displayStats': true, nomnomuml: false});
+  
+	  // let our plugin transform the variety results into own representation
+	  var output = plugin.formatResults(mockedResults);
+  
+	  // verify, that plugin transformed data to expected format
+	  // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+	  expect(output).toEqual(
+		
+		'@startuml\n' +
+		'object No name {\n' +
+		'\t_id: ObjectId (100%)\n' +
+		'\tpets: Number,String (40%)\n' +
+	  	'}\n' +
+	  	'@enduml'
+	  );
+	});
+  
+	it('should handle collectionName passed through the plugin config', function() {
+  
+	  plugin.init({'collectionName': 'Main', nomnomuml: false});
+  
+	  // let our plugin transform the variety results into own representation
+	  var output = plugin.formatResults(mockedResults);
+  
+	  // verify, that plugin transformed data to expected format
+	  // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+	  expect(output).toEqual(
+		'@startuml\n' +
+		'object Main {\n' +
+		'\t_id: ObjectId\n' +
+		'\tpets: Number,String\n' +
+	  	'}\n' +
+		'@enduml'	  
+		);
+	});
+  
+	it('should handle linked object', function() {
+  
+	  plugin.init({'collectionName': 'Main', 'nomnomuml': false});
+  
+	  // let our plugin transform the variety results into own representation
+	  var output = plugin.formatResults(mockedResultsWithObject);
+  
+	  // verify, that plugin transformed data to expected format
+	  // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+	  expect(output).toEqual(
+		'@startuml\n' +
+		'object Main {\n' +
+			'\tnumber: Number\n' +
+			'\tname: String\n' +
+			'\tcreatedAt: Date\n' +
+			'\t_id: ObjectId\n' +
+			'\tisLocked: Boolean\n' +
+			'\tcomment: String\n' +
+		'}\n' +
+		'object firstObject {\n' +
+			'\tfirstObject.listIds: Array\n' +
+		'}\n' +
+		'Main "1" -- "1" firstObject\n' +
+		'@enduml'
+	  );
+	});
+  
+	it('should handle linked array with objects', function() {
+  
+	  plugin.init({'collectionName': 'Main','displayStats':true, nomnomuml: false});
+  
+	  // let our plugin transform the variety results into own representation
+	  var output = plugin.formatResults(mockedResultsWithObjectInArray);
+  
+	  // verify, that plugin transformed data to expected format
+	  // https://jasmine.github.io/1.3/introduction.html#section-Expectations
+	  expect(output).toEqual(	
+		'@startuml\n' +
+		'object Main {\n' +
+		'\ttitle: String (100%)\n' +
+		'\t_id: ObjectId (100%)\n' +
+		'\tdata: Array (92.86%)\n' +
+		'\tupdatedAt: Date (42.86%)\n' +
+		'\tcategory: String (14.29%)\n' +
+		'\tzonename: String (7.14%)\n' +
+		'\tcode: String (7.14%)\n' +
+		'}\n' +
+	  	'@enduml'
+		);
+	});
+  });
